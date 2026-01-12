@@ -1,56 +1,49 @@
-import dotenv from "dotenv";
-import express from "express";
-import cors from "cors";
-import { Redis } from "@upstash/redis";
+import dotenv from 'dotenv'
+import express from 'express'
+import cors from 'cors'
+ 
+ import { Redis } from "@upstash/redis";
 
-dotenv.config();
+app.use(cors())
+dotenv.config()
 
-const app = express();
-const port = 4000;
-
-const redisClient = new Redis({
+const redisClient=new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-const api = process.env.API_KEY;
+const app=express();
+const port=4000;
+const api= process.env.API_KEY
 
-app.use(cors());
 
-app.get("/", (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.json("backend is fine");
-});
-
-app.get("/everything", async (req, res) => {
- 
+app.get('/everything', async (req, res) => {
   const query = req.query.q;
-  if (!query) {
-    return res.status(400).json({ error: "Query is required" });
-  }
+  const cacheKey = `news:${query}`; // ✅ consistent key
 
-  console.log("request received for everything");
-
-  const cacheData = await redisClient.get(query);
+  const cacheData = await redisClient.get(cacheKey);
   if (cacheData) {
     console.log("from redis");
-    return res.json(cacheData);
+    return res.json(
+  typeof cacheData === "string" ? JSON.parse(cacheData) : cacheData
+);
+
   }
 
   const response = await fetch(
     `https://newsapi.org/v2/everything?q=${query}&apiKey=${api}`
   );
-
   const data = await response.json();
   console.log("from API");
 
-  await redisClient.set(query, data, {
-    ex: 60 * 60 * 12, // 12 hours
+  // ✅ correct Upstash SET with expiry
+  await redisClient.set(cacheKey, JSON.stringify(data), {
+    ex: 60 * 5, // 5 minutes
   });
 
   res.json(data);
 });
 
-app.listen(port, () => {
-  console.log("listening at port number :" + port);
-});
+app.listen(port,()=>{
+    console.log("listenning at port number :"+port);
+})
