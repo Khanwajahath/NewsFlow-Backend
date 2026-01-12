@@ -1,49 +1,40 @@
-import dotenv from 'dotenv'
-import express from 'express'
-import cors from 'cors'
- 
- import { Redis } from "@upstash/redis";
+import { Redis } from "@upstash/redis";
 
-app.use(cors())
-dotenv.config()
-
-const redisClient=new Redis({
+const redisClient = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-const app=express();
-const port=4000;
-const api= process.env.API_KEY
+export default async function handler(req, res) {
+  // ✅ CORS HEADERS
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
+  // ✅ Preflight
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
 
-app.get('/everything', async (req, res) => {
   const query = req.query.q;
-  const cacheKey = `news:${query}`; // ✅ consistent key
+  if (!query) {
+    return res.status(400).json({ error: "Missing query param q" });
+  }
+
+  const cacheKey = `news:${query}`;
 
   const cacheData = await redisClient.get(cacheKey);
   if (cacheData) {
     console.log("from redis");
-    return res.json(
-  typeof cacheData === "string" ? JSON.parse(cacheData) : cacheData
-);
-
+    return res.status(200).json(cacheData);
   }
 
   const response = await fetch(
-    `https://newsapi.org/v2/everything?q=${query}&apiKey=${api}`
+    `https://newsapi.org/v2/everything?q=${query}&apiKey=${process.env.API_KEY}`
   );
   const data = await response.json();
-  console.log("from API");
 
-  // ✅ correct Upstash SET with expiry
-  await redisClient.set(cacheKey, JSON.stringify(data), {
-    ex: 60 * 5, // 5 minutes
-  });
+  await redisClient.set(cacheKey, data, { ex: 300 });
 
-  res.json(data);
-});
-
-app.listen(port,()=>{
-    console.log("listenning at port number :"+port);
-})
+  return res.status(200).json(data);
+}
