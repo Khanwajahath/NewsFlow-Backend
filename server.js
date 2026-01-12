@@ -23,8 +23,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/everything", async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-
+ 
   const query = req.query.q;
   if (!query) {
     return res.status(400).json({ error: "Query is required" });
