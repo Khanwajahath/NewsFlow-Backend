@@ -6,7 +6,8 @@ const redisClient = new Redis({
 });
 
 export default async function handler(req, res) {
-  // ✅ CORS HEADERS
+
+  // ✅ CORS HEADERS (MANDATORY)
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
