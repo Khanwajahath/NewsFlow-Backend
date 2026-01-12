@@ -2,9 +2,14 @@ import dotenv from 'dotenv'
 import express from 'express'
 import cors from 'cors'
 import { createClient } from 'redis'
- 
-const redisClient=createClient();
-dotenv.config()
+ import { Redis } from "@upstash/redis";
+
+
+ dotenv.config()
+const redisClient=new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
 const app=express();
 const port=4000;
