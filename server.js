@@ -1,43 +1,57 @@
-import dotenv from 'dotenv'
-import express from 'express'
-import cors from 'cors'
-import { createClient } from 'redis'
- import { Redis } from "@upstash/redis";
+import dotenv from "dotenv";
+import express from "express";
+import cors from "cors";
+import { Redis } from "@upstash/redis";
 
+dotenv.config();
 
- dotenv.config()
-const redisClient=new Redis({
+const app = express();
+const port = 4000;
+
+const redisClient = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-const app=express();
-const port=4000;
-const api= process.env.API_KEY
+const api = process.env.API_KEY;
 
-app.use(cors())
-app.get('/',async(req,res)=>{
-res.setHeader("Access-Control-Allow-Origin", "*");
-    res.json("backend is fine");
-})
+app.use(cors());
 
-app.get('/everything',async(req,res)=>{
-    console.log("request received for everything")
-    const query=req.query.q;
-    const cacheData = await redisClient.get(query);
-    if(cacheData){
-        console.log("from redis")
-        return res.json(JSON.parse(cacheData));
-    }
+app.get("/", (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.json("backend is fine");
+});
 
-    const response =await fetch(`https://newsapi.org/v2/everything?q=${query}&apiKey=${api}`)
-    const data=await response.json();
-        console.log("from API")
-      await redisClient.setEx(query, 60*60*12, JSON.stringify(data));
+app.get("/everything", async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
 
-    res.json(data);
-})
+  const query = req.query.q;
+  if (!query) {
+    return res.status(400).json({ error: "Query is required" });
+  }
 
-app.listen(port,()=>{
-    console.log("listenning at port number :"+port);
-})
+  console.log("request received for everything");
+
+  const cacheData = await redisClient.get(query);
+  if (cacheData) {
+    console.log("from redis");
+    return res.json(cacheData);
+  }
+
+  const response = await fetch(
+    `https://newsapi.org/v2/everything?q=${query}&apiKey=${api}`
+  );
+
+  const data = await response.json();
+  console.log("from API");
+
+  await redisClient.set(query, data, {
+    ex: 60 * 60 * 12, // 12 hours
+  });
+
+  res.json(data);
+});
+
+app.listen(port, () => {
+  console.log("listening at port number :" + port);
+});
