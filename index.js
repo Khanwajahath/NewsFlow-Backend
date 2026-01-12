@@ -3,7 +3,7 @@ import cors from "cors";
 import { Redis } from "@upstash/redis";
 
 const app = express();
-
+const api=process.env.API_KEY
 // Redis client
 const redisClient = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
@@ -32,7 +32,7 @@ app.get("/api/news", async (req, res) => {
     }
 
     const response = await fetch(
-      `https://newsapi.org/v2/everything?q=${query}&apiKey=${process.env.API_KEY}`
+      `https://newsapi.org/v2/everything?q=${query}&apiKey=${api}`
     );
     const data = await response.json();
 
