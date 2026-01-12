@@ -22,10 +22,7 @@ res.setHeader("Access-Control-Allow-Origin", "*");
 })
 
 app.get('/everything',async(req,res)=>{
-    res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
+    console.log("request received for everything")
     const query=req.query.q;
     const cacheData = await redisClient.get(query);
     if(cacheData){
