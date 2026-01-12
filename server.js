@@ -17,12 +17,14 @@ const api= process.env.API_KEY
 
 app.use(cors())
 app.get('/',async(req,res)=>{
- 
+res.setHeader("Access-Control-Allow-Origin", "*");
     res.json("backend is fine");
 })
 
 app.get('/everything',async(req,res)=>{
-
+    res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
     const query=req.query.q;
     const cacheData = await redisClient.get(query);
