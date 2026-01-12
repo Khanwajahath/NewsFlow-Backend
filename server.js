@@ -16,6 +16,10 @@ const port=4000;
 const api= process.env.API_KEY
 
 app.use(cors())
+app.get('/',async(req,res)=>{
+ 
+    res.json("backend is fine");
+})
 
 app.get('/everything',async(req,res)=>{
 
