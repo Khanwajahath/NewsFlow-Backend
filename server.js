@@ -1,64 +1,36 @@
-import express from "express";
-import cors from "cors";
-import fetch from "node-fetch";
-import dotenv from "dotenv";
+import dotenv from 'dotenv'
+import express from 'express'
+import cors from 'cors'
+import { createClient } from 'redis'
+ 
+const redisClient=createClient();
+dotenv.config()
 
-dotenv.config();
+const app=express();
+const port=4000;
+const api= process.env.API_KEY
+await redisClient.connect()
 
-const app = express();
-app.use(cors());
+app.use(cors())
 
-// simple test route
-app.get("/", (req, res) => {
-  res.send("Backend is working");
-});
-const myAPI=process.env.NEWS_API_KEY
-// news proxy route
-app.get("/news", async (req, res) => {
-  console.log("requst received for breaking news")
-  try {
-    const query=req.query.q || "technology";
-    const response = await fetch(
-      `https://newsapi.org/v2/everything?q=${query}&apiKey=${myAPI}`
-    );
+app.get('/everything',async(req,res)=>{
 
-    const data = await response.json();
+
+    const query=req.query.q;
+    const cacheData = await redisClient.get(query);
+    if(cacheData){
+        console.log("from redis")
+        return res.json(JSON.parse(cacheData));
+    }
+
+    const response =await fetch(`https://newsapi.org/v2/everything?q=${query}&apiKey=${api}`)
+    const data=await response.json();
+        console.log("from API")
+      await redisClient.setEx(query, 60*60*12, JSON.stringify(data));
+
     res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch news" });
-  }
-});
-//for sources => to get categories
-app.get("/news/categories", async (req, res) => {
-  console.log("requst received for categories")
-  try {
-    const response = await fetch(
-      `https://newsapi.org/v2/top-headlines/sources?apiKey=${myAPI}`
-    );
+})
 
-    const data = await response.json();
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch news" });
-  }
-});
-
-//route for the latest news
-app.get("/news/latest", async (req, res) => {
-  console.log("requst received for latest news")
-  try {
-    const category=req.query.category || "technology";
-    const response = await fetch(
-      `https://newsapi.org/v2/top-headlines?category=${category}&apiKey=${myAPI}`
-    );
-
-    const data = await response.json();
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch news" });
-  }
-});
-
-app.listen(4000, () => {
-  console.log("Server running on http://localhost:4000");
-});
+app.listen(port,()=>{
+    console.log("listenning at port number :"+port);
+})
