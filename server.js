@@ -14,7 +14,6 @@ const redisClient=new Redis({
 const app=express();
 const port=4000;
 const api= process.env.API_KEY
-await redisClient.connect()
 
 app.use(cors())
 
