@@ -36,7 +36,7 @@ app.get("/api/news", async (req, res) => {
     );
     const data = await response.json();
 
-    await redisClient.set(cacheKey, data, { ex: 10000 });
+    await redisClient.set(cacheKey, data, { ex: 1000 });
 
     return res.status(200).json(data);
   } catch (error) {
