@@ -86,8 +86,8 @@ app.get("/api/weather", async (req, res) => {
     const cacheData = await redisClient.get(cacheKey);
 
     if (cacheData) {
-      console.log("from redis for /weather");
-      return res.status(200).json(JSON.parse(cacheData));
+      // console.log("from redis for /api/weather");
+      return res.status(200).json(cacheData);  
     }
 
     const response = await fetch(
@@ -96,11 +96,7 @@ app.get("/api/weather", async (req, res) => {
 
     const data = await response.json();
 
-    await redisClient.set(
-      cacheKey,
-      JSON.stringify(data),
-      { EX: 10000 }
-    );
+    await redisClient.set(cacheKey, data, { ex: 10000 });
 
     return res.status(200).json(data);
   } catch (error) {
