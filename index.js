@@ -80,15 +80,14 @@ app.get("/", (req, res) => {
   res.json({ status: "ok", message: "News API with Redis cache" });
 });
 
-app.get("/weather",async (req,res)=>{
-  try{
- 
-    const cacheKey = `news:weather`;
+app.get("/api/weather", async (req, res) => {
+  try {
+    const cacheKey = "news:weather";
     const cacheData = await redisClient.get(cacheKey);
 
     if (cacheData) {
       console.log("from redis for /weather");
-      return res.status(200).json(cacheData);
+      return res.status(200).json(JSON.parse(cacheData));
     }
 
     const response = await fetch(
@@ -97,15 +96,20 @@ app.get("/weather",async (req,res)=>{
 
     const data = await response.json();
 
-    await redisClient.set(cacheKey, data, { ex: 10000 });
+    await redisClient.set(
+      cacheKey,
+      JSON.stringify(data),
+      { EX: 10000 }
+    );
 
     return res.status(200).json(data);
-  }
-  catch(error){
+  } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
-})
+});
+
+
 // app.listen(3000, () => {
 //   console.log("Server running on http://localhost:3000");
 // });
