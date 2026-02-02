@@ -7,7 +7,7 @@ dotenv.config();
 
 const app = express();
 const api = process.env.API_KEY;
-
+const weatherApi=process.env.WEATHER_API_KEY
 // Redis client
 const redisClient = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
@@ -80,6 +80,32 @@ app.get("/", (req, res) => {
   res.json({ status: "ok", message: "News API with Redis cache" });
 });
 
+app.get("/weather",async (req,res)=>{
+  try{
+ 
+    const cacheKey = `news:weather`;
+    const cacheData = await redisClient.get(cacheKey);
+
+    if (cacheData) {
+      console.log("from redis for /weather");
+      return res.status(200).json(cacheData);
+    }
+
+    const response = await fetch(
+      `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/Hyderabad,IN?key=${weatherApi}`
+    );
+
+    const data = await response.json();
+
+    await redisClient.set(cacheKey, data, { ex: 10000 });
+
+    return res.status(200).json(data);
+  }
+  catch(error){
+    console.error("Error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+})
 // app.listen(3000, () => {
 //   console.log("Server running on http://localhost:3000");
 // });
