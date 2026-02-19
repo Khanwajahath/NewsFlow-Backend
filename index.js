@@ -2,9 +2,14 @@ import express from "express";
 import cors from "cors";
 import { Redis } from "@upstash/redis";
 import dotenv from "dotenv";
+import authRoutes from "./routes/authRoutes.js";
+import connectDB from "./config/db.js";
+
+import dns from 'dns'
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
 dotenv.config();
-
+connectDB();
 const app = express();
 const api = process.env.API_KEY;
 const weatherApi=process.env.WEATHER_API_KEY
@@ -104,6 +109,10 @@ app.get("/api/weather", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+
+
+app.use("/api/auth", authRoutes);
+
 
 
 // app.listen(3000, () => {
