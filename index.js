@@ -19,7 +19,11 @@ const redisClient = new Redis({
 
 // Middleware
 const corsOptions = {
-  origin: "*", // or specify: "http://localhost:5173"
+  origin: [
+    "https://news-flow-backend.vercel.app/api/auth/login",
+    "https://news-flow-backend.vercel.app/api/auth/register",
+    "*"
+  ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
