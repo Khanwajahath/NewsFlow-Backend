@@ -5,9 +5,7 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import connectDB from "./config/db.js";
 
-import dns from 'dns'
-dns.setServers(["1.1.1.1", "8.8.8.8"]);
-
+ 
 dotenv.config();
 connectDB();
 const app = express();
