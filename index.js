@@ -20,19 +20,15 @@ const redisClient = new Redis({
 // Middleware
 const corsOptions = {
   origin: [
-    "https://news-flow-backend.vercel.app/api/auth/login",
-    "https://news-flow-backend.vercel.app/api/auth/register",
-    "*"
+    "http://localhost:5173",           // local dev
+    "https://news-flow-front-e.vercel.app"  // production frontend
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
 app.use(cors(corsOptions));
-
-// Explicitly handle preflight requests for all routes
 app.options("*", cors(corsOptions));
-
 app.use(express.json());
 
 // ... rest of your routes
