@@ -20,8 +20,23 @@ const redisClient = new Redis({
 });
 
 // Middleware
-app.use(cors());
+import cors from "cors";
+
+const corsOptions = {
+  origin: "*", // or specify: "http://localhost:5173"
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+
+// Explicitly handle preflight requests for all routes
+app.options("*", cors(corsOptions));
+
 app.use(express.json());
+
+// ... rest of your routes
+ 
 
 // News endpoint
 app.get("/api/news", async (req, res) => {
