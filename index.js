@@ -20,8 +20,6 @@ const redisClient = new Redis({
 });
 
 // Middleware
-import cors from "cors";
-
 const corsOptions = {
   origin: "*", // or specify: "http://localhost:5173"
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
