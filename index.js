@@ -16,11 +16,12 @@ const redisClient = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
-
+const mobile_ip=process.env.MOBILE_IP;
 // Middleware
 const corsOptions = {
   origin: [
     "http://localhost:5173",           // local dev
+    `http://${mobile_ip}:5173`, // local network
     "https://news-flow-front-e.vercel.app"  // production frontend
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
