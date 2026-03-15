@@ -32,18 +32,19 @@ app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 app.use(express.json());
 
-// ... rest of your routes
+ 
  
 
 // News endpoint
 app.get("/api/news", async (req, res) => {
   try {
     const query = req.query.q;
-
+   
+ 
     if (!query) {
       return res.status(400).json({ error: "Missing query param q" });
     }
-
+    
     const cacheKey = `news:${query}`;
     const cacheData = await redisClient.get(cacheKey);
 
@@ -61,6 +62,7 @@ app.get("/api/news", async (req, res) => {
     await redisClient.set(cacheKey, data, { ex: 10000 });
 
     return res.status(200).json(data);
+    
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -91,7 +93,32 @@ app.get("/api/news/top-headlines/sources", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+app.get("/api/news/category",async (req,res)=>{
+  try{
+    const category= req.query.category;
 
+    const cacheKey = `news:${category}`;
+    const cacheData = await redisClient.get(cacheKey);
+
+    if (cacheData) {
+      console.log("from redis for /api/news/category");
+      return res.status(200).json(cacheData);
+    }
+
+    const response = await fetch(
+      `https://newsapi.org/v2/top-headlines?category=${category}&apiKey=${api}`
+    );
+
+    const data = await response.json();
+
+    await redisClient.set(cacheKey, data, { ex: 10000 });
+
+    return res.status(200).json(data);
+  }catch(error){
+    console.error("Error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+})
 // Health check
 app.get("/", (req, res) => {
   res.json({ status: "ok", message: "News API with Redis cache" });
